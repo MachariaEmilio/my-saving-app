@@ -176,3 +176,162 @@ export const updatesavings = async (req, res) => {
     res.status(500).json({ error: "Failed to update savings." });
   }
 };
+
+export const withdrawSavings = async (req, res) => {
+  try {
+    const { Userid, savingAmount } = req.body;
+
+    // Validate input (optional but recommended)
+    if (!Userid || savingAmount === undefined || savingAmount < 0) {
+      return res
+        .status(400)
+        .json({ error: "Userid and a valid savingAmount are required." });
+    }
+
+    // Fetch the user's current balances
+    const user = await prisma.userDetails.findUnique({
+      where: {
+        id: parseInt(Userid),
+      },
+      select: {
+        savingsBalance: true,
+        balance: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Perform the withdrawal and balance update
+    const newSavingsBalance = user.savingsBalance - parseInt(savingAmount);
+    const newBalance = user.balance + parseInt(savingAmount);
+
+    // Ensure savings balance doesn't go negative
+    if (newSavingsBalance < 0) {
+      return res.status(400).json({ error: "Insufficient savings balance." });
+    }
+
+    // Update the user details
+    const updatedUser = await prisma.userDetails.update({
+      where: {
+        id: parseInt(Userid),
+      },
+      data: {
+        savingsBalance: newSavingsBalance,
+        balance: newBalance,
+      },
+    });
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error withdrawing savings:", error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found." }); // Prisma error for record not found.
+    }
+
+    res.status(500).json({ error: "Failed to withdraw savings." });
+  }
+};
+
+export const DepositSavings = async (req, res) => {
+  try {
+    const { Userid, Amount } = req.body;
+
+    // Validate input (optional but recommended)
+    if (!Userid || Amount === undefined || Amount < 0) {
+      return res
+        .status(400)
+        .json({ error: "Userid and a valid Amount are required." });
+    }
+
+    // Fetch the user's current balances
+    const user = await prisma.userDetails.findUnique({
+      where: {
+        id: parseInt(Userid),
+      },
+      select: {
+        savingsBalance: true,
+        balance: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Perform the deposit and balance update
+    const newSavingsBalance = user.savingsBalance + parseInt(Amount);
+    const newBalance = user.balance - parseInt(Amount);
+
+    // Ensure main balance doesn't go negative
+    if (newBalance < 0) {
+      return res.status(400).json({ error: "Insufficient account balance." });
+    }
+
+    // Update the user details
+    const updatedUser = await prisma.userDetails.update({
+      where: {
+        id: parseInt(Userid),
+      },
+      data: {
+        savingsBalance: newSavingsBalance,
+        balance: newBalance,
+      },
+    });
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Error depositing savings:", error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found." }); // Prisma error for record not found.
+    }
+
+    res.status(500).json({ error: "Failed to deposit savings." });
+  }
+};
+export const changepassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, Userid } = req.body;
+
+    // Validate input (very important)
+    if (!Userid || !currentPassword || !newPassword) {
+      return res.status(400).json({
+        error: "Userid, currentPassword, and newPassword are required.",
+      });
+    }
+
+    // Fetch the user's stored password (plain text - UNSAFE)
+    const user = await prisma.userDetails.findUnique({
+      where: { id: parseInt(Userid) },
+      select: { password: true },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // Verify the current password (plain text - UNSAFE)
+    if (currentPassword !== user.password) {
+      return res.status(401).json({ error: "Incorrect current password." });
+    }
+
+    // Update the password in the database (plain text - UNSAFE)
+    const updatedUser = await prisma.userDetails.update({
+      where: { id: parseInt(Userid) },
+      data: { password: newPassword },
+    });
+
+    res.status(200).json({ message: "Password changed successfully." });
+  } catch (error) {
+    console.error("Error changing password:", error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    res.status(500).json({ error: "Failed to change password." });
+  }
+};

@@ -2,7 +2,16 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 // checks the balance
-export const checkbalance = async (userid) => {
+export const checkpassword = async (userid) => {
+  const balance = await prisma.userDetails.findUnique({
+    where: { id: userid },
+    select: { password: true },
+  });
+
+  return balance.password;
+};
+
+export const checkbalance= async (userid) => {
   const balance = await prisma.userDetails.findUnique({
     where: { id: userid },
     select: { balance: true },

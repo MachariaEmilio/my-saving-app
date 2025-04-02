@@ -1,130 +1,136 @@
-/* General Styles */
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #f4f4f4;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-.main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.header {
+/* Dashboard.css */
+.dashboard-container {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
+  min-height: 100vh;
+  background-color: #f9f9f9;
 }
 
-.header img {
-    height: 60px;
-    width:60px;
+.dashboard-nav {
+  width: 250px;
+  background-color: #e8e8e8;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); /* Box shadow */
+  margin-left: 20px; /* Bring nav closer to center */
+}
+
+.dashboard-nav button {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border: none;
+  background-color: transparent;
   cursor: pointer;
-}
-
-.header p {
-  font-size: 24px;
-  font-weight: bold;
+  text-align: left;
+  border-radius: 5px;
   color: #333;
 }
 
-.balance {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.balance p {
-  font-size: 18px;
-  color: #666;
-}
-
-.balance .color {
-  font-size: 24px;
-  color: #4CAF50;
-}
-
-button {
-  background-color: #4CAF50;
+.dashboard-nav button.active {
+  background-color: #3498db;
   color: white;
-  padding: 10px 20px;
-  font-size: 16px;
-  border: none;
-  border-radius: 5px;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dashboard-header,
+.dashboard-balance,
+.dashboard-actions,
+.dashboard-history {
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 20px;
+  background-color: white; /* Added white background */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Box shadow */
+  padding: 15px; /* Added padding */
+  border-radius: 5px; /* Added border-radius */
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboard-header img {
+  width: 50px;
+  height: 50px;
   cursor: pointer;
-  margin: 10px 0;
-  transition: background-color 0.3s ease;
 }
 
-button:hover {
-  background-color: #45a049;
+.dashboard-balance {
+  text-align: center;
+  color: #333;
 }
 
-button:focus {
-  outline: none;
+.dashboard-actions {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Responsive Design */
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.action-buttons button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+  border-radius: 5px;
+  color: #333;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Box shadow */
+}
+
+.action-buttons button.active {
+  background-color: #3498db;
+  color: white;
+  border: none;
+}
+
+.nav-toggle {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  display: none;
+  color: #333;
+}
+
 @media (max-width: 768px) {
-  .main {
-    padding: 15px;
+  .dashboard-nav {
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 100vh;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    margin-left: 0; /* Remove margin on mobile */
   }
 
-  .header p {
-    font-size: 20px;
+  .dashboard-nav.open {
+    left: 0;
   }
 
-  .balance {
-    padding: 15px;
+  .nav-toggle {
+    display: block;
   }
 
-  .balance p {
-    font-size: 16px;
-  }
-
-  .balance .color {
-    font-size: 20px;
-  }
-
-  button {
-    font-size: 14px;
-    padding: 8px 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .main {
-    padding: 10px;
-  }
-
-  .header p {
-    font-size: 18px;
-  }
-
-  .balance {
-    padding: 10px;
-  }
-
-  .balance p {
-    font-size: 14px;
-  }
-
-  .balance .color {
-    font-size: 18px;
-  }
-
-  button {
-    font-size: 12px;
-    padding: 6px 12px;
+  .dashboard-content {
+    padding-top: 60px;
   }
 }

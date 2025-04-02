@@ -1,100 +1,161 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./DashBoard.css";
+import "./Dashboard.css";
 import Transactionshistoy from "../../../components/history/transactionshistoy";
 import SendMoney from "../../../components/send money/sendmoney";
-import Modal from "@mui/material/Modal";import Saving from "../saving/Saving";
-;
+import Saving from "../saving/Saving";
+import UserDetails from "../../../components/userdetails/userdetails";
+import ChangePassword from "../../../components/changepassword/changepassword";
+import { FaBars } from "react-icons/fa"; // Import menu icon
 
-const Home = () => {
-  const [open, setOpen] = useState(false);
+const Dashboard = () => {
   const [balance, setBalance] = useState(0);
   const [userDetails, setUserDetails] = useState(null);
   const navigate = useNavigate();
+  const [activeComponent, setActiveComponent] = useState("sendMoney");
+  const [activeNav, setActiveNav] = useState("dashboard");
+  const [isNavOpen, setIsNavOpen] = useState(false); // State for mobile nav
 
-  // Handle Modal open/close
-  const handleModalStatus = () => {
-    setOpen(!open);
-  };
-    const userDetailsString = localStorage.getItem("userdetails"); 
-  const user = JSON.parse(userDetailsString); // Parse the string into an object
-  const userId = user.id; // Extract the user ID
+  const userDetailsString = localStorage.getItem("userdetails");
+  const user = JSON.parse(userDetailsString);
+  const userId = user.id;
+
   useEffect(() => {
     const fetchUserDetails = async () => {
-      const userDetailsString = localStorage.getItem("userdetails"); // Get userDetails string from localStorage
+      const userDetailsString = localStorage.getItem("userdetails");
       if (!userDetailsString) {
-        navigate("/login"); // If no userDetails found, navigate to login
+        navigate("/home");
         return;
       }
 
       try {
-        const user = JSON.parse(userDetailsString); // Parse the string into an object
-        const userId = user.id; // Extract the user ID
-
-        // Fetch user details
+        const user = JSON.parse(userDetailsString);
         const fetchedUserDetails = await fetch(
           `http://localhost:3000/users/${userId}`
         ).then((res) => res.json());
 
         setUserDetails(fetchedUserDetails);
-        setBalance(fetchedUserDetails.balance); // Update balance with fetched data
+        setBalance(fetchedUserDetails.balance);
       } catch (error) {
         console.error("Failed to fetch user details:", error);
       }
     };
 
     fetchUserDetails();
-    //remove the interval , since we dont want to refresh every minute.
-  }, [navigate]);
+  }, [navigate, userId]);
 
   if (!userDetails) {
-    return <p>Loading...</p>; // Show loading state while fetching user details
+    return <p>Loading...</p>;
   }
 
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/home");
+  };
+
+  const toggleNav = () => {
+    setIsNavOpen(!isNavOpen);
+  };
+
   return (
-    <div className="main">
-      <header className="header">
-        <img
-          src="/assets/icon.jpg"
+    <div className="dashboard-container">
+      <nav className={`dashboard-nav ${isNavOpen ? "open" : ""}`}>
+        <button className="nav-toggle" onClick={toggleNav}>
+          <FaBars />
+        </button>
+        <button
           onClick={() => {
-            navigate("/home/settings");
+            setActiveNav("dashboard");
+            setIsNavOpen(false);
           }}
-          alt="company  Icon"
-        />
-        <p>
-          Welcome {userDetails.Fname} {userDetails.Sname}
-        </p>
-      </header>
-      <div className="balance container" id="balance">
-        <p>Your available balance</p>
-        <p>
-          KSH <span className="color">{balance}</span>
-        </p>
-      </div>
+          className={activeNav === "dashboard" ? "active" : ""}
+        >
+          Dashboard
+        </button>
+        <button
+          onClick={() => {
+            setActiveNav("userDetails");
+            setIsNavOpen(false);
+          }}
+          className={activeNav === "userDetails" ? "active" : ""}
+        >
+          User Details
+        </button>
+        <button
+          onClick={() => {
+            setActiveNav("changePassword");
+            setIsNavOpen(false);
+          }}
+          className={activeNav === "changePassword" ? "active" : ""}
+        >
+          Change Password
+        </button>
+        <button
+          onClick={() => {
+            handleLogout();
+            setIsNavOpen(false);
+          }}
+        >
+          Logout
+        </button>
+      </nav>
+      <div className="dashboard-content">
+        {activeNav === "dashboard" && (
+          <>
+            <header className="dashboard-header">
+              <img
+                src="/assets/icon.jpg"
+             
+                alt="company Icon"
+              />
+              <p>
+                Welcome {userDetails.Fname} {userDetails.Sname}
+              </p>
+            </header>
 
-      <button onClick={handleModalStatus}> send money </button>
-      <button> save </button>
-      <div>
-        <Transactionshistoy />
-      </div>
+            <div className="dashboard-balance">
+              <p>Your available balance</p>
+              <p>
+                KSH <span className="balance-amount">{balance}</span>
+              </p>
+            </div>
 
-      <Modal
-        onClose={handleModalStatus}
-        open={open}
-        style={{
-          display: "block",
-          position: "absolute",
-          margin: "auto",
-          marginTop: "120px",
-          height: 300,
-          width: 350,
-        }}
-      >
-        <SendMoney setStatus={setOpen} />
-      </Modal>
-      <Saving userId={userId} />
+            <div className="dashboard-actions">
+              <div className="action-buttons">
+                <button
+                  onClick={() => setActiveComponent("sendMoney")}
+                  className={activeComponent === "sendMoney" ? "active" : ""}
+                >
+                  Send Money
+                </button>
+                <button
+                  onClick={() => setActiveComponent("savings")}
+                  className={activeComponent === "savings" ? "active" : ""}
+                >
+                  Savings
+                </button>
+              </div>
+              <div className="active-component">
+                {activeComponent === "sendMoney" && <SendMoney />}
+                {activeComponent === "savings" && (
+                  <Saving
+                    userId={userId}
+                    savingbalance={userDetails.savingsBalance}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="dashboard-history">
+              <Transactionshistoy />
+            </div>
+          </>
+        )}
+        {activeNav === "userDetails" && <UserDetails user={userDetails} />}
+        {activeNav === "changePassword" && <ChangePassword userId={userId} />}
+      </div>
     </div>
   );
 };
 
-export default Home;
+export default Dashboard;

@@ -1,0 +1,22 @@
+/* UserDetails.css */
+.user-details-container {
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f8f8f8;
+
+}
+
+.user-details-container h2 {
+  margin-bottom: 20px;
+}
+
+.user-details-item {
+  margin-bottom: 10px;
+  font-size: 1em;
+}
+
+.user-details-item strong {
+  font-weight: bold;
+  margin-right: 5px;
+}

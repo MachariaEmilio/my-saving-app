@@ -1,50 +1,40 @@
-
-
+/* transactionhistory.css */
 .statement {
-  background-color: #ffffff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 20px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 10px 20px;
+  background-color: #f0f0f0;
+  border-bottom: 1px solid #ddd;
 }
 
 .statement p {
-  font-size: 18px;
   font-weight: bold;
 }
 
 .statement button {
-  background-color: #4CAF50;
+  padding: 8px 15px;
+  background-color: #3498db;
   color: white;
   border: none;
-  padding: 8px 16px;
+  border-radius: 4px;
   cursor: pointer;
-  border-radius: 5px;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
 }
 
 .statement button:hover {
-  background-color: #45a049;
+  background-color: #2980b9;
 }
 
-
 .allstatement {
-  margin-top: 20px;
+  padding: 20px;
 }
 
 .history {
-  background-color: #fff;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #eee;
 }
 
 .history div {
@@ -52,34 +42,27 @@
   flex-direction: column;
 }
 
-.history .date {
+.date {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.history .amount {
-  font-weight: bold;
-  padding: 5px;
-  border-radius: 5px;
+.amount.blue {
+  color: blue;
 }
 
-.history .amount.blue {
-  color: #0044cc;
+.amount.red {
+  color: red;
 }
 
-.history .amount.red {
-  color: #f44336;
-}
+@media (max-width: 600px) {
+  .history {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-.history p {
-  margin: 5px 0;
-}
-
-.history .date p {
-  font-size: 14px;
-  color: #777;
-}
-
-button {
-  cursor: pointer;
+  .date {
+    align-items: flex-start;
+  }
 }
