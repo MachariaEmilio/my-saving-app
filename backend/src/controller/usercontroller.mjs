@@ -61,12 +61,25 @@ export const post_user = async (req, res) => {
   body.balance = 0;
   body.savingsBalance = 0;
   console.log(body);
+  const checkuser=CheckUserById(body.id);
+  if (checkuser === 404){
 await prisma.savings.create({
-  data:{
-    Userid:body.id,
-    savingPercentage:0 
-  }
-})
+  data: {
+    Userid: body.id,
+    savingPercentage:0,
+  },
+});}else{
+  await prisma.savings.update({
+    data: {
+      Userid: body.id,
+      savingPercentage: 0,
+      
+    },
+    where:{
+      Userid: body.id
+    }
+  });
+}
   const newUser = await prisma.userDetails.create({
     data: body,
   });

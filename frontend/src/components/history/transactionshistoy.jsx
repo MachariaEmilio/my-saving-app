@@ -60,9 +60,12 @@ const Transactionshistoy = () => {
       </div>
 
       <div className="allstatement" ref={tableRef}>
-        {datas.map((transaction) => (
-          <Transactionlist transaction={transaction} key={transaction.id} />
-        ))}
+        {datas.map((transaction) => {
+          if(transaction){
+      return     <Transactionlist transaction={transaction} key={transaction.id} />
+          }
+          
+})}
       </div>
     </>
   );

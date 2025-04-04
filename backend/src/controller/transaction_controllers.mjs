@@ -82,12 +82,14 @@ export const getTransactionRecord = async (req, res) => {
       sender_id: parseInt(id),
     },
   });
-
   const sent_transactions = usersent.map((item) => ({
     ...item,
     amount: `-${item.amount}`,
     id: item.receiver_id,
   }));
+  if (!usersent.length<=0 || sent_transactions.length<=0) {
+    return res.json({ data: "none" });
+  }
 
   for (let i = 0; i < sent_transactions.length; i++) {
     const fullname = await checknames(sent_transactions[i].receiver_id);

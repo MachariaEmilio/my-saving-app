@@ -79,6 +79,7 @@ router
   .route("/transactions")
   .get(getalltransactions)
   .post(
+    
     checkSchema(verify_transactions),
     verify_registration_data,
     createatransaction
