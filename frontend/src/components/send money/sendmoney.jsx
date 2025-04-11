@@ -1,25 +1,30 @@
-import React from "react";
-import "./sendmoney.css";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./sendmoney.css";
 
 const SendMoney = ({ setStatus }) => {
-  const [message, setmessage] = useState("");
-const navigate = useNavigate()
-  // const senderid = useSelector((data) => data.userdetails.userdetails.id);
+  const [message, setMessage] = useState("");
+  const navigate = useNavigate();
   const senderid = JSON.parse(localStorage.getItem("userdetails"));
 
-  const [inputData, SetInputData] = useState({ sender_id: senderid.id });
-  // console.log(inputData);
+  // State to hold input data
+  const [inputData, setInputData] = useState({
+    sender_id: senderid.id,
+    receiver_id: "",
+    amount: "",
+    password: "",
+  });
+
+  // Handle form submission
   async function handleSubmit(e) {
     e.preventDefault();
+
     if (inputData.amount <= 0) {
-      setmessage("The minimum amount for transaction 1");
+      setMessage("The minimum amount for transaction is 1");
+    } else if (inputData.sender_id === inputData.receiver_id) {
+      setMessage("You can't create a transaction to your own account");
     } else {
-      if (inputData.sender_id === inputData.receiver_id) {
-        setmessage("you can't create a transaction to your account ");
-      } else {
-        // console.log("object input data:", inputData);
+      try {
         const createTransaction = await fetch(
           "http://localhost:3000/transactions",
           {
@@ -30,41 +35,51 @@ const navigate = useNavigate()
             body: JSON.stringify(inputData),
           }
         );
+
         if (!createTransaction.ok) {
           alert(
-            "Something happened.The transaction is not complete .Please check the message sent to you "
+            "Something happened. The transaction is not complete. Please check the message sent to you."
           );
           setStatus(false);
-        } else {
-          const data = await createTransaction.json();
-          console.log(data);
-          if (data.status !== 200) {
-            alert(
-              "Something happened.The transaction is not complete .Please check the message sent to you "
-            );
-          } else {
-            alert("You have successfully sent .Wait for confirmation message ");
-            navigate("/dashboard")
-            setStatus(false);
-          }
+          return;
         }
+
+        const data = await createTransaction.json();
+
+        if (data.status !== 200) {
+          alert(
+            "Something happened. The transaction is not complete. Please check the message sent to you."
+          );
+        } else {
+          alert("You have successfully sent. Wait for confirmation message.");
+
+          // Clear input fields only on success
+          setInputData({
+            sender_id: senderid.id,
+            receiver_id: "",
+            amount: "",
+            password: "",
+          });
+
+          setStatus(false);
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Transaction error:", error);
+        setMessage("An unexpected error occurred. Please try again.");
       }
     }
   }
+
+  // Handle input changes
   const handleChange = (event) => {
     const { name, value } = event.target;
     if (name !== "password") {
-      SetInputData((prev) => ({
-        ...prev,
-        [name]: parseInt(value),
-      }));
+      setInputData((prev) => ({ ...prev, [name]: parseInt(value) }));
     } else {
-      SetInputData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
+      setInputData((prev) => ({ ...prev, [name]: value }));
     }
-    setmessage("");
+    setMessage("");
   };
 
   return (
@@ -73,16 +88,13 @@ const navigate = useNavigate()
         Send money
       </p>
 
-      <form
-        action="receiver_id"
-        onSubmit={handleSubmit}
-        className="transactionform"
-      >
-        <label htmlFor="receiver_id">Enter the receiver id</label>
+      <form onSubmit={handleSubmit} className="transactionform">
+        <label htmlFor="receiver_id">Enter the receiver ID</label>
         <input
           name="receiver_id"
           type="number"
           id="receiver_id"
+          value={inputData.receiver_id || ""}
           onChange={handleChange}
         />
 
@@ -91,9 +103,11 @@ const navigate = useNavigate()
           type="number"
           name="amount"
           id="amount"
+          value={inputData.amount || ""}
           onChange={handleChange}
         />
 
+        {/* Show error message if any */}
         <label style={{ color: "red", fontSize: "17px" }}>{message}</label>
 
         <label htmlFor="password">Enter your password</label>
@@ -101,6 +115,7 @@ const navigate = useNavigate()
           type="password"
           name="password"
           id="password"
+          value={inputData.password || ""}
           onChange={handleChange}
         />
 

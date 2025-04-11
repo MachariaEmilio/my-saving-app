@@ -70,81 +70,82 @@ export const createatransaction = async (req, res) => {
     res.status(500).send({ error: error });
     console.log(error);
   }
-};
-
-export const getTransactionRecord = async (req, res) => {
+};export const getTransactionRecord = async (req, res) => {
   const {
     params: { id },
   } = req;
-  // get transactions which the user sent
+
+  const userId = parseInt(id);
+
+  // Get transactions sent by the user
   const usersent = await prisma.transactionrecord.findMany({
-    where: {
-      sender_id: parseInt(id),
-    },
+    where: { sender_id: userId },
   });
+
   const sent_transactions = usersent.map((item) => ({
     ...item,
     amount: `-${item.amount}`,
     id: item.receiver_id,
   }));
-  if (!usersent.length<=0 || sent_transactions.length<=0) {
-    return res.json({ data: "none" });
-  }
 
-  for (let i = 0; i < sent_transactions.length; i++) {
-    const fullname = await checknames(sent_transactions[i].receiver_id);
-    sent_transactions[i].fullname = `${fullname.Fname} ${fullname.Sname}`;
-  }
-
+  // Get transactions received by the user
   const userReceived = await prisma.transactionrecord.findMany({
-    where: { receiver_id: parseInt(id) },
+    where: { receiver_id: userId },
   });
 
   const received_transactions = userReceived.map((item) => ({
     ...item,
-    amount: (item.amount = `+${item.amount}`),
+    amount: `+${item.amount}`,
     id: item.sender_id,
   }));
-  for (let i = 0; i < received_transactions.length; i++) {
-    const fullname = await checknames(received_transactions[i].sender_id);
-    received_transactions[i].fullname = `${fullname.Fname} ${fullname.Sname}`;
+
+  // If no transactions at all
+  if (sent_transactions.length === 0 && received_transactions.length === 0) {
+    return res.json({ data: "none" });
   }
 
-  const Alltransactions = [...sent_transactions, ...received_transactions];
-  Alltransactions.sort((b, a) => new Date(a.timestamp) - new Date(b.timestamp));
+  // Add fullnames to sent transactions
+  const sentNames = await Promise.all(
+    sent_transactions.map((tx) => checknames(tx.receiver_id))
+  );
+  sent_transactions.forEach((tx, i) => {
+    const name = sentNames[i];
+    tx.fullname = name ? `${name.Fname} ${name.Sname}` : "Unknown User";
+  });
 
+  // Add fullnames to received transactions
+  const receivedNames = await Promise.all(
+    received_transactions.map((tx) => checknames(tx.sender_id))
+  );
+  received_transactions.forEach((tx, i) => {
+    const name = receivedNames[i];
+    tx.fullname = name ? `${name.Fname} ${name.Sname}` : "Unknown User";
+  });
+
+  // Combine and sort all transactions
+  const Alltransactions = [...sent_transactions, ...received_transactions];
+  Alltransactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  // Format timestamps
   function formatDateTime(dateString) {
     const date = new Date(dateString);
-
-    const options = {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    };
+    const options = { month: "long", day: "numeric", year: "numeric" };
     const datePart = date.toLocaleDateString("en-US", options);
-
     let hours = date.getHours();
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12;
-    hours = hours ? hours : 12;
+    hours = hours % 12 || 12;
     const minutesStr = minutes < 10 ? "0" + minutes : minutes;
-
-    const timePart = `${hours}:${minutesStr} ${ampm}`;
-
-    return `${datePart}, ${timePart}`;
+    return `${datePart}, ${hours}:${minutesStr} ${ampm}`;
   }
-  for (let i = 0; i < Alltransactions.length; i++) {
-    Alltransactions[i].timestamp = formatDateTime(Alltransactions[i].timestamp);
-  }
-  res.json(
-    // sent:
-    // sent_transactions
-    // received: received_transactions
-    // // ,received:userReceived,
-    Alltransactions
-  );
+
+  Alltransactions.forEach((tx) => {
+    tx.timestamp = formatDateTime(tx.timestamp);
+  });
+
+  res.json({ data: Alltransactions });
 };
+
 
 export const updatesavings = async (req, res) => {
   try {

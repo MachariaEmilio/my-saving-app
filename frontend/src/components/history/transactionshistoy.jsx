@@ -1,90 +1,99 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./transactionhistory.css";
 import jsPDF from "jspdf";
-import "jspdf-autotable"; // Important: Import after jsPDF
+import "jspdf-autotable";
 
-const Transactionshistoy = () => {
-  const [datas, setdata] = useState([]);
-  const id = JSON.parse(localStorage.getItem("userdetails"));
+const TransactionHistory = () => {
+  console.log(jsPDF.API.autoTable); // should NOT be undefined
+
+  const [transactions, setTransactions] = useState([]);
   const tableRef = useRef(null);
+  const user = JSON.parse(localStorage.getItem("userdetails"));
 
   useEffect(() => {
-    async function get_transactions_history() {
+    async function fetchTransactionHistory() {
       try {
         const response = await fetch(
-          `http://localhost:3000/transactionbyid/${id.id}`
+          `http://localhost:3000/transactionbyid/${user.id}`
         );
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data && Array.isArray(data)) {
-          setdata(data);
+
+        const result = await response.json();
+        if (result && Array.isArray(result.data)) {
+          setTransactions(result.data);
         } else {
-          console.error("Invalid or empty data from API:", data);
-          setdata([]);
+          console.error("Invalid or empty data from API:", result);
+          setTransactions([]);
         }
       } catch (error) {
         console.error("Error fetching transaction history:", error);
-        setdata([]);
+        setTransactions([]);
       }
     }
-    get_transactions_history();
-  }, []);
+
+    fetchTransactionHistory();
+  }, [user.id]);
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    doc.text("Transaction History", 10, 10);
+    doc.text("Transaction History", 14, 15);
 
-    const tableData = datas.map((transaction) => [
-      transaction.fullname,
-      transaction.id,
-      transaction.amount,
-      transaction.timestamp,
+    const tableData = transactions.map((tx) => [
+      tx.fullname,
+      tx.id,
+      tx.amount,
+      tx.timestamp,
     ]);
 
     doc.autoTable({
       head: [["Full Name", "ID", "Amount", "Timestamp"]],
       body: tableData,
-      startY: 20, // Start table after the title
+      startY: 25,
+      styles: { fontSize: 10 },
     });
 
     doc.save("transaction_history.pdf");
   };
 
   return (
-    <>
-      <div className="statement">
-        <p>Statement</p>
-        <button onClick={handleDownloadPDF}>Download PDF</button>
+    <div className="statement-container">
+      <div className="statement-header">
+        <h2>Transaction Statement</h2>
+        {transactions.length > 0 && (
+          <button onClick={handleDownloadPDF} className="download-btn">
+            Download PDF
+          </button>
+        )}
       </div>
 
-      <div className="allstatement" ref={tableRef}>
-        {datas.map((transaction) => {
-          if(transaction){
-      return     <Transactionlist transaction={transaction} key={transaction.id} />
-          }
-          
-})}
+      <div className="all-statement" ref={tableRef}>
+        {transactions.length === 0 ? (
+          <p className="no-data">No transactions available.</p>
+        ) : (
+          transactions.map((tx) => (
+            <TransactionItem
+              transaction={tx}
+              key={`${tx.id}-${tx.timestamp}`}
+            />
+          ))
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
-const Transactionlist = ({ transaction }) => {
+const TransactionItem = ({ transaction }) => {
+  const isPositive = parseFloat(transaction.amount) > 0;
+
   return (
     <div className="history">
       <div>
         <p>{transaction.fullname}</p>
-        <p>{transaction.id}</p>
+        <p>ID: {transaction.id}</p>
       </div>
-
       <div className="date">
-        <p
-          className={`amount ${
-            parseInt(transaction.amount) > 0 ? "blue" : "red"
-          }`}
-        >
+        <p className={`amount ${isPositive ? "blue" : "red"}`}>
           {transaction.amount}
         </p>
         <p>{transaction.timestamp}</p>
@@ -93,4 +102,4 @@ const Transactionlist = ({ transaction }) => {
   );
 };
 
-export default Transactionshistoy;
+export default TransactionHistory;

@@ -102,6 +102,19 @@ export async function send_email_savings(receiver_email, body) {
     console.log("Message sent: %s", info.messageId);
   });
 }
+const body = {
+  sender_id: 12345,
+  receiver_id: 12,
+  amount: 2300,
+  savingamount: 200,
+  timestamp: Date.now(),
+  transaction_id: "TXN20250411ABC",
+};
+
+send_email_savings("emiliowambugu@gmail.com", body)
+  .then(() => console.log("Test email sent"))
+  .catch((err) => console.error("Error sending test email:", err.message));
+
 
 export async function send_email(receiver_email, body) {
   const names = await checknames(body.sender_id);
@@ -269,7 +282,7 @@ const data = {
 // send_email_to_sender("emiliowanchez32@gmail.com", data);
 
 // send otp
-export const send_otp = (receiver_id) => {
+export const send_otp =async(receiver_id) => {
   let otp = Math.floor(Math.random(10) * 1000000);
   console.log(otp);
   let mailOptions = {
